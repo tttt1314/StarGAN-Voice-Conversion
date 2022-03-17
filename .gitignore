@@ -1,0 +1,6 @@
+/data
+/VocalSet
+__pycache__/
+/logs
+.vscode
+command.txt
