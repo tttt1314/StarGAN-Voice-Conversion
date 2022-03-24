@@ -12,6 +12,7 @@ from data_loader import to_categorical
 import librosa
 from utils import *
 import glob
+import soundfile as sf
 
 # Below is the accent info for the used 10 speakers.
 spk2acc = {'262': 'Edinburgh', #F
@@ -25,7 +26,7 @@ spk2acc = {'262': 'Edinburgh', #F
            '248': 'India', #F
            '251': 'India'} #M
 
-speakers = ['p262', 'p272', 'p229', 'p232', 'p292', 'p293', 'p360', 'p361', 'p248', 'p251']
+speakers = ['falset', 'chest'] #MODIFY
 spk2idx = dict(zip(speakers, range(len(speakers))))
 
 class TestDataset(object):
@@ -36,7 +37,8 @@ class TestDataset(object):
         self.src_spk = config.src_spk
         self.trg_spk = config.trg_spk
 
-        self.mc_files = sorted(glob.glob(join(config.test_data_dir, f'{config.src_spk}*.npy')))
+        self.mc_files = sorted(glob.glob(join(config.test_data_dir, f'*_{config.src_spk}_*.npy')))
+        print(self.mc_files)
         self.src_spk_stats = np.load(join(config.train_data_dir, f'{config.src_spk}_stats.npz'))
         self.src_wav_dir = f'{config.wav_dir}/{config.src_spk}'
 
@@ -110,28 +112,28 @@ def test(config):
             wav_transformed = world_speech_synthesis(f0=f0_converted, coded_sp=coded_sp_converted, 
                                                     ap=ap, fs=sampling_rate, frame_period=frame_period)
             wav_id = wav_name.split('.')[0]
-            librosa.output.write_wav(join(config.convert_dir, str(config.resume_iters),
+            sf.write(join(config.convert_dir, str(config.resume_iters),
                 f'{wav_id}-vcto-{test_loader.trg_spk}.wav'), wav_transformed, sampling_rate)
             if [True, False][0]:
                 wav_cpsyn = world_speech_synthesis(f0=f0, coded_sp=coded_sp, 
                                                 ap=ap, fs=sampling_rate, frame_period=frame_period)
-                librosa.output.write_wav(join(config.convert_dir, str(config.resume_iters), f'cpsyn-{wav_name}'), wav_cpsyn, sampling_rate)
+                sf.write(join(config.convert_dir, str(config.resume_iters), f'cpsyn-{wav_name}'), wav_cpsyn, sampling_rate)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
     # Model configuration.
-    parser.add_argument('--num_speakers', type=int, default=10, help='dimension of speaker labels')
-    parser.add_argument('--num_converted_wavs', type=int, default=8, help='number of wavs to convert.')
+    parser.add_argument('--num_speakers', type=int, default=2, help='dimension of speaker labels')
+    parser.add_argument('--num_converted_wavs', type=int, default=6, help='number of wavs to convert.')
     parser.add_argument('--resume_iters', type=int, default=None, help='step to resume for testing.')
-    parser.add_argument('--src_spk', type=str, default='p262', help = 'target speaker.')
-    parser.add_argument('--trg_spk', type=str, default='p272', help = 'target speaker.')
+    parser.add_argument('--src_spk', type=str, default='chest', help = 'target speaker.') #MODIFY
+    parser.add_argument('--trg_spk', type=str, default='falset', help = 'target speaker.') #MODIFY
 
     # Directories.
     parser.add_argument('--train_data_dir', type=str, default='./data/mc/train')
     parser.add_argument('--test_data_dir', type=str, default='./data/mc/test')
-    parser.add_argument('--wav_dir', type=str, default="./data/VCTK-Corpus/wav16")
+    parser.add_argument('--wav_dir', type=str, default="./data/wav16")
     parser.add_argument('--log_dir', type=str, default='./logs')
     parser.add_argument('--model_save_dir', type=str, default='./models')
     parser.add_argument('--convert_dir', type=str, default='./converted')

@@ -4,3 +4,6 @@ __pycache__/
 /logs
 .vscode
 command.txt
+/data
+/data_vs
+/converted

@@ -103,7 +103,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
     sample_rate_default = 16000
-    origin_wavpath_default = "./data/wav441"
+    origin_wavpath_default = "./data/wav48k"
     target_wavpath_default = "./data/wav16"
     mc_dir_train_default = './data/mc/train'
     mc_dir_test_default = './data/mc/test'
@@ -131,10 +131,10 @@ if __name__ == '__main__':
     num_workers = argv.num_workers if argv.num_workers is not None else cpu_count()
 
     # The original wav in VCTK is 48K, first we want to resample to 16K
-    resample_to_16k(origin_wavpath, target_wavpath, num_workers=num_workers)
+    #resample_to_16k(origin_wavpath, target_wavpath, num_workers=num_workers)
 
     # WE only use 10 speakers listed below for this experiment.
-    speaker_used = ['belt', 'breathy']
+    speaker_used = ['chest', 'falset']
     #speaker_used = ['p'+i for i in speaker_used]
 
     # Next we are to extract the acoustic features (MCEPs, lf0) and compute the corresponding stats (means, stds).
