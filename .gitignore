@@ -11,3 +11,12 @@ _pychache_
 converted
 
 
+/data
+/VocalSet
+__pycache__/
+/logs
+.vscode
+command.txt
+/data
+/data_vs
+/converted
