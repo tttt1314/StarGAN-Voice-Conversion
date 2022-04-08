@@ -13,6 +13,7 @@ from data_loader import to_categorical
 import librosa
 from utils import *
 from tqdm import tqdm
+import soundfile as sf
 
 
 class Solver(object):
@@ -49,7 +50,7 @@ class Solver(object):
         # Miscellaneous.
         self.use_tensorboard = config.use_tensorboard
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
+        #self.device = torch.device('cpu')
         # Directories.
         self.log_dir = config.log_dir
         self.sample_dir = config.sample_dir
@@ -160,7 +161,7 @@ class Solver(object):
         data_iter = iter(train_loader)
 
         # Read a batch of testdata
-        test_wavfiles = self.test_loader.get_batch_test_data(batch_size=4)
+        test_wavfiles = self.test_loader.get_batch_test_data(batch_size=3) # MODIFY
         test_wavs = [self.load_wav(wavfile) for wavfile in test_wavfiles]
 
         # Determine whether do copysynthesize when first do training-time conversion test.
@@ -292,28 +293,31 @@ class Solver(object):
                         wav_name = basename(test_wavfiles[idx])
                         # print(wav_name)
                         f0, timeaxis, sp, ap = world_decompose(wav=wav, fs=sampling_rate, frame_period=frame_period)
+                        '''
                         f0_converted = pitch_conversion(f0=f0, 
                             mean_log_src=self.test_loader.logf0s_mean_src, std_log_src=self.test_loader.logf0s_std_src, 
                             mean_log_target=self.test_loader.logf0s_mean_trg, std_log_target=self.test_loader.logf0s_std_trg)
+                        '''
                         coded_sp = world_encode_spectral_envelop(sp=sp, fs=sampling_rate, dim=num_mcep)
                         
                         coded_sp_norm = (coded_sp - self.test_loader.mcep_mean_src) / self.test_loader.mcep_std_src
                         coded_sp_norm_tensor = torch.FloatTensor(coded_sp_norm.T).unsqueeze_(0).unsqueeze_(1).to(self.device)
                         conds = torch.FloatTensor(self.test_loader.spk_c_trg).to(self.device)
                         # print(conds.size())
+                        ##
                         coded_sp_converted_norm = self.G(coded_sp_norm_tensor, conds).data.cpu().numpy()
                         coded_sp_converted = np.squeeze(coded_sp_converted_norm).T * self.test_loader.mcep_std_trg + self.test_loader.mcep_mean_trg
                         coded_sp_converted = np.ascontiguousarray(coded_sp_converted)
                         # decoded_sp_converted = world_decode_spectral_envelop(coded_sp = coded_sp_converted, fs = sampling_rate)
-                        wav_transformed = world_speech_synthesis(f0=f0_converted, coded_sp=coded_sp_converted, 
+                        wav_transformed = world_speech_synthesis(f0=f0, coded_sp=coded_sp_converted, 
                                                                 ap=ap, fs=sampling_rate, frame_period=frame_period)
                         
-                        librosa.output.write_wav(
+                        sf.write(
                             join(self.sample_dir, str(i+1)+'-'+wav_name.split('.')[0]+'-vcto-{}'.format(self.test_loader.trg_spk)+'.wav'), wav_transformed, sampling_rate)
                         if cpsyn_flag:
                             wav_cpsyn = world_speech_synthesis(f0=f0, coded_sp=coded_sp, 
                                                         ap=ap, fs=sampling_rate, frame_period=frame_period)
-                            librosa.output.write_wav(join(self.sample_dir, 'cpsyn-'+wav_name), wav_cpsyn, sampling_rate)
+                            sf.write(join(self.sample_dir, 'cpsyn-'+wav_name), wav_cpsyn, sampling_rate)
                     cpsyn_flag = False
 
             # Save model checkpoints.

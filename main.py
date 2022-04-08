@@ -22,7 +22,7 @@ def main(config):
 
     # Data loader.
     train_loader = get_loader(config.train_data_dir, config.batch_size, 'train', num_workers=config.num_workers)
-    test_loader = TestDataset(config.test_data_dir, config.wav_dir, src_spk='p262', trg_spk='p272')
+    test_loader = TestDataset(config.test_data_dir, config.wav_dir, src_spk='falset', trg_spk='chest')
 
     # Solver for training and testing StarGAN.
     solver = Solver(train_loader, test_loader, config)
@@ -38,14 +38,14 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
     # Model configuration.
-    parser.add_argument('--num_speakers', type=int, default=10, help='dimension of speaker labels')
+    parser.add_argument('--num_speakers', type=int, default=2, help='dimension of speaker labels')
     parser.add_argument('--lambda_cls', type=float, default=10, help='weight for domain classification loss')
     parser.add_argument('--lambda_rec', type=float, default=10, help='weight for reconstruction loss')
     parser.add_argument('--lambda_gp', type=float, default=10, help='weight for gradient penalty')
     parser.add_argument('--sampling_rate', type=int, default=16000, help='sampling rate')
     
     # Training configuration.
-    parser.add_argument('--batch_size', type=int, default=32, help='mini-batch size')
+    parser.add_argument('--batch_size', type=int, default=8, help='mini-batch size')
     parser.add_argument('--num_iters', type=int, default=200000, help='number of total iterations for training D')
     parser.add_argument('--num_iters_decay', type=int, default=100000, help='number of iterations for decaying lr')
     parser.add_argument('--g_lr', type=float, default=0.0001, help='learning rate for G')
@@ -66,7 +66,7 @@ if __name__ == '__main__':
     # Directories.
     parser.add_argument('--train_data_dir', type=str, default='./data/mc/train')
     parser.add_argument('--test_data_dir', type=str, default='./data/mc/test')
-    parser.add_argument('--wav_dir', type=str, default="./data/VCTK-Corpus/wav16")
+    parser.add_argument('--wav_dir', type=str, default="./data/wav16")
     parser.add_argument('--log_dir', type=str, default='./logs')
     parser.add_argument('--model_save_dir', type=str, default='./models')
     parser.add_argument('--sample_dir', type=str, default='./samples')

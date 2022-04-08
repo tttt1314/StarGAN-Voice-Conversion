@@ -19,7 +19,7 @@ spk2acc = {'262': 'Edinburgh', #F
            '251': 'India'} #M
 min_length = 256   # Since we slice 256 frames from each utterance when training.
 # Build a dict useful when we want to get one-hot representation of speakers.
-speakers = ['p262', 'p272', 'p229', 'p232', 'p292', 'p293', 'p360', 'p361', 'p248', 'p251']
+speakers = ['chest', 'falset'] ##MODIFY
 spk2idx = dict(zip(speakers, range(len(speakers))))
 
 def to_categorical(y, num_classes=None):
@@ -52,7 +52,7 @@ class MyDataset(data.Dataset):
     """Dataset for MCEP features and speaker labels."""
     def __init__(self, data_dir):
         mc_files = glob.glob(join(data_dir, '*.npy'))
-        mc_files = [i for i in mc_files if basename(i)[:4] in speakers] 
+        #mc_files = [i for i in mc_files if basename(i)[:4] in speakers] 
         self.mc_files = self.rm_too_short_utt(mc_files)
         self.num_files = len(self.mc_files)
         print("\t Number of training samples: ", self.num_files)
@@ -80,7 +80,7 @@ class MyDataset(data.Dataset):
 
     def __getitem__(self, index):
         filename = self.mc_files[index]
-        spk = basename(filename).split('_')[0]
+        spk = basename(filename).split('_')[-2]
         spk_idx = spk2idx[spk]
         mc = np.load(filename)
         mc = self.sample_seg(mc)
@@ -93,10 +93,10 @@ class MyDataset(data.Dataset):
 
 class TestDataset(object):
     """Dataset for testing."""
-    def __init__(self, data_dir, wav_dir, src_spk='p262', trg_spk='p272'):
+    def __init__(self, data_dir, wav_dir, src_spk='falset', trg_spk='chest'): ##MODIFY
         self.src_spk = src_spk
         self.trg_spk = trg_spk
-        self.mc_files = sorted(glob.glob(join(data_dir, '{}*.npy'.format(self.src_spk))))
+        self.mc_files = sorted(glob.glob(join(data_dir, '*_{}_*.npy'.format(self.src_spk)))) ##MODIFY
 
         self.src_spk_stats = np.load(join(data_dir.replace('test', 'train'), '{}_stats.npz'.format(src_spk)))
         self.trg_spk_stats = np.load(join(data_dir.replace('test', 'train'), '{}_stats.npz'.format(trg_spk)))
@@ -114,7 +114,7 @@ class TestDataset(object):
         spk_cat = to_categorical([self.spk_idx], num_classes=len(speakers))
         self.spk_c_trg = spk_cat
 
-    def get_batch_test_data(self, batch_size=8):
+    def get_batch_test_data(self, batch_size=3):
         batch_data = []
         for i in range(batch_size):
             mcfile = self.mc_files[i]
@@ -137,7 +137,7 @@ if __name__ == '__main__':
     loader = get_loader('./data/mc/train')
     data_iter = iter(loader)
     for i in range(10):
-        mc, spk_idx, acc_idx, spk_acc_cat = next(data_iter)
+        mc, spk_idx, spk_acc_cat = next(data_iter)
         print('-'*50)
         print(mc.size())
         print(spk_idx.size())

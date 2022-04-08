@@ -1,0 +1,1 @@
+python preprocess.py --sample_rate 16000 --origin_wavpath data/belt --target_wavpath data/breathy --mc_dir_train data/mc/train --mc_dir_test data/mc/test
